@@ -6,10 +6,13 @@
 //
 
 import UIKit
+
+
 class UpcomingTableViewCell : UITableViewCell  {
     
-    
+ 
    static let identifier = "UpcomingTableViewCell"
+   
    
     private var playTitleButton : UIButton = {
         let button = UIButton()
@@ -44,7 +47,8 @@ class UpcomingTableViewCell : UITableViewCell  {
         
         
     }
-    
+   
+
     
     func applyContraints() {
         let titlePosterUIImageViewContraints = [

@@ -37,7 +37,7 @@ class UpComingViewController: UITabBarController, UITableViewDelegate, UITableVi
             switch result {
             case .success(let titles):
                 self?.titles = titles
-                print("Upcoming Movies: \(titles)")
+              
                 DispatchQueue.main.async {
                     self?.upcomingTableView.reloadData()
                 }
@@ -62,5 +62,27 @@ class UpComingViewController: UITabBarController, UITableViewDelegate, UITableVi
        
         return 140  
     }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let selectedTitle = titles[indexPath.row]
+        guard let selectedTitleName = selectedTitle.original_name ?? selectedTitle.original_title else { return }
+
+        APICaller.shared.getMovieYoutube(with: selectedTitleName) { [weak self] result in
+            switch result {
+            case .success(let firstItem):
+                let viewModel = TitlePreviewViewModel(title: selectedTitleName, overviewTitle: selectedTitle.overview, youtubeView: firstItem)
+                
+                DispatchQueue.main.async { [weak self] in
+                    let movieDetailVC = MovieDetailViewController()
+                    movieDetailVC.configure(with: viewModel)
+                    self?.navigationController?.pushViewController(movieDetailVC, animated: true)
+                }
+
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+
+
 
 }

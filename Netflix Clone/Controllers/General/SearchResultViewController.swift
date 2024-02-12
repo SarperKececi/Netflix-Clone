@@ -58,5 +58,6 @@ class SearchResultViewController: UIViewController , UICollectionViewDelegate , 
         
     }
     
+    
 }
 

@@ -38,6 +38,7 @@ class SearchViewController: UITabBarController, UITableViewDataSource, UITableVi
         fetchDiscoverMovies()
         
         
+        
     }
     
     override func viewDidLayoutSubviews() {

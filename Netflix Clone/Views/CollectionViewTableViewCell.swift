@@ -7,10 +7,17 @@
 
 import UIKit
 
+protocol CollectionViewTableViewCellDelegate: AnyObject {
+    func collectionViewTableViewCell(_cell: CollectionViewTableViewCell, viewModel: TitlePreviewViewModel)
+    
+}
+
+
 class CollectionViewTableViewCell: UITableViewCell {
 
    static let identifier = "CollectionViewTableViewCell"
     private var title : [Title] = [Title]()
+    weak var delegate : CollectionViewTableViewCellDelegate?
     
     private let collectionView: UICollectionView = {
            let layout = UICollectionViewFlowLayout()
@@ -74,5 +81,24 @@ extension CollectionViewTableViewCell : UICollectionViewDelegate , UICollectionV
 
           return cell
        }
-    
+   
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        
+        let title = title[indexPath.row]
+        guard let titleName = title.original_title ?? title.original_name else {return}
+      
+        
+        
+        APICaller.shared.getMovieYoutube(with: titleName + "trailer") { [weak self] result in
+            switch result {
+            case.success(let videoElement):
+                print(videoElement.id)
+                let viewModel = TitlePreviewViewModel(title: titleName, overviewTitle: title.overview, youtubeView: videoElement)
+                self!.delegate?.collectionViewTableViewCell(_cell: self!, viewModel: viewModel)
+            case.failure(let error):
+                print(error)
+            }
+        }
+    }
 }

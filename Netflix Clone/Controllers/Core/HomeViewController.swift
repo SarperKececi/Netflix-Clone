@@ -20,6 +20,9 @@ enum Sections: Int {
 
 class HomeViewController: UITabBarController , UITableViewDelegate, UITableViewDataSource {
    
+    private var randomHeaderObject : Title?
+    
+    
     private let homeFeedTableView: UITableView = { // stored property
         let tableView = UITableView(frame: .zero, style: .grouped)
         tableView.register(CollectionViewTableViewCell.self, forCellReuseIdentifier: CollectionViewTableViewCell.identifier)
@@ -39,17 +42,28 @@ class HomeViewController: UITabBarController , UITableViewDelegate, UITableViewD
         
         homeFeedTableView.delegate = self
         homeFeedTableView.dataSource = self
-        
+        configureNavBar()
        
         let headerView = HeroHeaderUIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width , height: 400))
         homeFeedTableView.tableHeaderView = headerView
       
-        configureNavBar()
+        
       
     }
     
-    
-   
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        homeFeedTableView.frame = CGRect(x: 0, y: view.safeAreaInsets.top, width: view.bounds.width, height: view.bounds.height - view.safeAreaInsets.top - view.safeAreaInsets.bottom)
+        //homeFeedTableView.frame = view.bounds
+       
+    }
+    override func viewDidAppear(_ animated: Bool) {
+           super.viewDidAppear(animated)
+
+           
+          
+           
+       }
     
     private func configureNavBar() {
         var image = UIImage(named: "netflixpng")
@@ -65,21 +79,13 @@ class HomeViewController: UITabBarController , UITableViewDelegate, UITableViewD
             UIBarButtonItem(image: UIImage(systemName: "play.rectangle"), style: .done, target: self, action: nil)
         ]
     }
-
-    
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        homeFeedTableView.frame = CGRect(x: 0, y: view.safeAreaInsets.top, width: view.bounds.width, height: view.bounds.height - view.safeAreaInsets.top - view.safeAreaInsets.bottom)
-        //homeFeedTableView.frame = view.bounds
-       
-    }
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: CollectionViewTableViewCell.identifier, for: indexPath) as? CollectionViewTableViewCell else {
             return UITableViewCell()
         }
+        cell.delegate = self
         switch indexPath.section {
         case Sections.TrendingMovies.rawValue :
             APICaller.shared.getTrendingMovies { result in
@@ -88,7 +94,7 @@ class HomeViewController: UITabBarController , UITableViewDelegate, UITableViewD
                     cell.configure(with: titles)
                 case.failure(let error):
                     print(error.localizedDescription)
-                    
+                            
                 }
             }
         case Sections.Popular .rawValue :
@@ -175,7 +181,19 @@ class HomeViewController: UITabBarController , UITableViewDelegate, UITableViewD
         header.textLabel?.text = header.textLabel?.text?.capitalizedFirstLetter()
        
     }
+   
+    
+}
+extension HomeViewController : CollectionViewTableViewCellDelegate {
+    func collectionViewTableViewCell(_cell: CollectionViewTableViewCell, viewModel: TitlePreviewViewModel) {
+        DispatchQueue.main.async {
+            let vc = MovieDetailViewController()
+            vc.configure(with: viewModel)
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+        
        
-
+    }
+    
     
 }

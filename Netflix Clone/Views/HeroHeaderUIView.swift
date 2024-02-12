@@ -1,7 +1,7 @@
 import UIKit
 
 class HeroHeaderUIView: UIView {
-    
+    private var titles : [Title] = []
     // Download butonu için UIButton öğesi
     private let downloadButton: UIButton = {
         let downloadButton = UIButton()
@@ -84,18 +84,27 @@ class HeroHeaderUIView: UIView {
 
     // UIView'in alt sınıfını başlatmak için gerekli init fonksiyonu
     override init(frame: CGRect) {
-        super.init(frame: frame)
-        // Alt sınıfın öğelerini ana görünüme ekle
-        addSubview(heroImageView)
-        addGradient()
-        addSubview(playButton)
-        addSubview(downloadButton)
-        applyConstraints()
-      
-       
-       
-    }
-
+          super.init(frame: frame)
+          // Alt sınıfın öğelerini ana görünüme ekle
+          addSubview(heroImageView)
+          addGradient()
+          addSubview(playButton)
+          addSubview(downloadButton)
+          applyConstraints()
+          
+          // TrendingMovies'i al ve ilk öğenin poster_url'sini kullan
+          APICaller.shared.getTrendingMovies { [weak self] result in
+              switch result {
+              case .success(let titles):
+                  self?.titles = titles
+                  if let firstItemPosterURL = titles.first?.poster_path {
+                      self?.heroImageView.sd_setImage(with: URL(string: TitleCollectionViewCell.baseUrl + firstItemPosterURL))
+                  }
+              case .failure(let error):
+                  print(error.localizedDescription)
+              }
+          }
+      }
     // NSCoder aracılığıyla başlatma işlevi (kod içinde kullanılmıyor)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
