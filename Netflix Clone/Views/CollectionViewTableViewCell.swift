@@ -9,7 +9,7 @@ import UIKit
 
 protocol CollectionViewTableViewCellDelegate: AnyObject {
     func collectionViewTableViewCell(_cell: CollectionViewTableViewCell, viewModel: TitlePreviewViewModel)
-    
+ 
 }
 
 
@@ -18,6 +18,7 @@ class CollectionViewTableViewCell: UITableViewCell {
    static let identifier = "CollectionViewTableViewCell"
     private var title : [Title] = [Title]()
     weak var delegate : CollectionViewTableViewCellDelegate?
+    weak var delegateDownload: CollectionViewTableViewCellDelegate?
     
     private let collectionView: UICollectionView = {
            let layout = UICollectionViewFlowLayout()
@@ -60,11 +61,25 @@ class CollectionViewTableViewCell: UITableViewCell {
         
         }
     }
+    
+    private func downloadTitleAt(indexPath: IndexPath) {
+        
+        DataPersistenceManager.shared.downloadItem(model: title[indexPath.row]) { result in
+            switch result {
+            case.success() : 
+                print("Dowloaded Database")
+            case.failure(let error) :
+                print(error.localizedDescription)
+                
+            }
+        }
+       
+    }
 
     
 }
 extension CollectionViewTableViewCell : UICollectionViewDelegate , UICollectionViewDataSource {
-   
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         title.count
     }
@@ -78,16 +93,16 @@ extension CollectionViewTableViewCell : UICollectionViewDelegate , UICollectionV
             return UICollectionViewCell()
         }
         cell.configure(with: model)
-
-          return cell
-       }
-   
+        
+        return cell
+    }
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         
         let title = title[indexPath.row]
         guard let titleName = title.original_title ?? title.original_name else {return}
-      
+        
         
         
         APICaller.shared.getMovieYoutube(with: titleName + "trailer") { [weak self] result in
@@ -96,9 +111,40 @@ extension CollectionViewTableViewCell : UICollectionViewDelegate , UICollectionV
                 print(videoElement.id)
                 let viewModel = TitlePreviewViewModel(title: titleName, overviewTitle: title.overview, youtubeView: videoElement)
                 self!.delegate?.collectionViewTableViewCell(_cell: self!, viewModel: viewModel)
+                
             case.failure(let error):
                 print(error)
             }
         }
     }
+    
+    
+    func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let configuration = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { suggestedActions in
+            // Bir veya daha fazla UIMenuElement (UIAction, UICommand, UIMenu) ekleyerek bağlam menüsünü yapılandırın.
+            
+            let title = self.title[indexPath.row]
+            guard let titleName = title.original_title ?? title.original_name else {
+                return UIMenu(title: "", image: nil, identifier: nil, options: [], children: [])
+            }
+            
+            let downloadAction = UIAction(title: "Download \(titleName)", image: UIImage(systemName: "arrow.down.circle.fill")) { action in
+                self.downloadTitleAt(indexPath: indexPath)
+            }
+            
+            let addToFavoritesAction = UIAction(title: "Add to Favorites", image: UIImage(systemName: "heart.fill")) { action in
+                // Favorilere ekleme işlemi için gerekli kodu buraya ekleyin
+                // Örneğin: Filmi favorilere ekleyen bir işlem başlatın
+            }
+            
+            return UIMenu(title: "", image: nil, identifier: nil, options: [], children: [downloadAction, addToFavoritesAction])
+        }
+        
+        return configuration
+    }
+
+ 
+    
+
+    
 }

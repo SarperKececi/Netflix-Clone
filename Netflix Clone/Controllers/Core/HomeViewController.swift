@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import CoreData
 
 enum Sections: Int {
     case TrendingMovies = 0
@@ -57,14 +58,7 @@ class HomeViewController: UITabBarController , UITableViewDelegate, UITableViewD
         //homeFeedTableView.frame = view.bounds
        
     }
-    override func viewDidAppear(_ animated: Bool) {
-           super.viewDidAppear(animated)
-
-           
-          
-           
-       }
-    
+   
     private func configureNavBar() {
         var image = UIImage(named: "netflixpng")
         image = image?.withRenderingMode(.alwaysOriginal)
@@ -79,13 +73,15 @@ class HomeViewController: UITabBarController , UITableViewDelegate, UITableViewD
             UIBarButtonItem(image: UIImage(systemName: "play.rectangle"), style: .done, target: self, action: nil)
         ]
     }
-    
+
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: CollectionViewTableViewCell.identifier, for: indexPath) as? CollectionViewTableViewCell else {
             return UITableViewCell()
         }
         cell.delegate = self
+        cell.delegateDownload = self
+        
         switch indexPath.section {
         case Sections.TrendingMovies.rawValue :
             APICaller.shared.getTrendingMovies { result in
@@ -185,6 +181,8 @@ class HomeViewController: UITabBarController , UITableViewDelegate, UITableViewD
     
 }
 extension HomeViewController : CollectionViewTableViewCellDelegate {
+   
+    
     func collectionViewTableViewCell(_cell: CollectionViewTableViewCell, viewModel: TitlePreviewViewModel) {
         DispatchQueue.main.async {
             let vc = MovieDetailViewController()

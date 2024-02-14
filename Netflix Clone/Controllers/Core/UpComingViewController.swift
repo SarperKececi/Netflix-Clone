@@ -9,7 +9,7 @@ import UIKit
 
 class UpComingViewController: UITabBarController, UITableViewDelegate, UITableViewDataSource {
 
-    private var titles : [Title] = [Title]()  // Değişken ismi değiştirildi.
+    private var titles : [Title] = [Title]()
 
     private let upcomingTableView: UITableView = {
         let tableView = UITableView()
@@ -20,10 +20,17 @@ class UpComingViewController: UITabBarController, UITableViewDelegate, UITableVi
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-
+        title = "Upcoming"
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationItem.largeTitleDisplayMode = .always
+        
+        
+        
+        
+        view.addSubview(upcomingTableView)
         upcomingTableView.dataSource = self
         upcomingTableView.delegate = self
-        view.addSubview(upcomingTableView)
+       
         getUpcomingMovies()
     }
 
@@ -55,7 +62,7 @@ class UpComingViewController: UITabBarController, UITableViewDelegate, UITableVi
         guard let cell = tableView.dequeueReusableCell(withIdentifier: UpcomingTableViewCell.identifier, for: indexPath) as? UpcomingTableViewCell else {
             return UITableViewCell()
         }
-        cell.confgure(with: TitleViewModel(titleName: titles[indexPath.row].original_title ?? "", posterUrl: titles[indexPath.row].poster_path ?? ""))
+        cell.configure(with: TitleViewModel(titleName: titles[indexPath.row].original_title ?? "", posterUrl: titles[indexPath.row].poster_path ?? ""))
         return cell
     }
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -66,10 +73,10 @@ class UpComingViewController: UITabBarController, UITableViewDelegate, UITableVi
         let selectedTitle = titles[indexPath.row]
         guard let selectedTitleName = selectedTitle.original_name ?? selectedTitle.original_title else { return }
 
-        APICaller.shared.getMovieYoutube(with: selectedTitleName) { [weak self] result in
+        APICaller.shared.getMovieYoutube(with: selectedTitleName + "trailer") { [weak self] result in
             switch result {
-            case .success(let firstItem):
-                let viewModel = TitlePreviewViewModel(title: selectedTitleName, overviewTitle: selectedTitle.overview, youtubeView: firstItem)
+            case .success(let youtubeResponse):
+                let viewModel = TitlePreviewViewModel(title: selectedTitleName, overviewTitle: selectedTitle.overview, youtubeView: youtubeResponse)
                 
                 DispatchQueue.main.async { [weak self] in
                     let movieDetailVC = MovieDetailViewController()

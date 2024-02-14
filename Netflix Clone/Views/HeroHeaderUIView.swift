@@ -97,8 +97,8 @@ class HeroHeaderUIView: UIView {
               switch result {
               case .success(let titles):
                   self?.titles = titles
-                  if let firstItemPosterURL = titles.first?.poster_path {
-                      self?.heroImageView.sd_setImage(with: URL(string: TitleCollectionViewCell.baseUrl + firstItemPosterURL))
+                  if let randomPosterURL = titles.randomElement()?.poster_path {
+                      self?.heroImageView.sd_setImage(with: URL(string: TitleCollectionViewCell.baseUrl + randomPosterURL))
                   }
               case .failure(let error):
                   print(error.localizedDescription)

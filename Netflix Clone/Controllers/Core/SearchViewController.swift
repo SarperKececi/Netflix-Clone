@@ -34,7 +34,7 @@ class SearchViewController: UITabBarController, UITableViewDataSource, UITableVi
         searchViewTableView.dataSource = self
         navigationItem.searchController = searchResultView
         searchResultView.searchResultsUpdater = self
-        
+    
         fetchDiscoverMovies()
         
         
@@ -71,8 +71,29 @@ class SearchViewController: UITabBarController, UITableViewDataSource, UITableVi
         
         let title = titles[indexPath.row]
         let model = TitleViewModel(titleName: (title.original_name ?? title.original_title) ?? "nil", posterUrl: title.poster_path ?? "")
-        cell.confgure(with: model)
+        cell.configure(with: model)
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let selectedTitle = titles[indexPath.row]
+        guard let selectedTitleName = selectedTitle.original_name ?? selectedTitle.original_title else { return }
+
+        APICaller.shared.getMovieYoutube(with: selectedTitleName + "trailer") { [weak self] result in
+            switch result {
+            case .success(let youtubeResponse):
+                let viewModel = TitlePreviewViewModel(title: selectedTitleName, overviewTitle: selectedTitle.overview, youtubeView: youtubeResponse)
+                
+                DispatchQueue.main.async { [weak self] in
+                    let movieDetailVC = MovieDetailViewController()
+                    movieDetailVC.configure(with: viewModel)
+                    self?.navigationController?.pushViewController(movieDetailVC, animated: true)
+                }
+
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -89,7 +110,7 @@ extension SearchViewController: UISearchResultsUpdating { // searchBar içinde k
             return
             
         }
-        
+        resultController.delegate = self
         
         APICaller.shared.searchMovies(query: query) {  result in
             switch result {
@@ -109,4 +130,17 @@ extension SearchViewController: UISearchResultsUpdating { // searchBar içinde k
         
         
     }
+}
+extension SearchViewController : SearchResultViewControllerDelegate {
+    
+    func searchResultViewController(_viewModel: TitlePreviewViewModel) {
+        DispatchQueue.main.async {
+            let vc = MovieDetailViewController()
+            vc.configure(with: _viewModel)
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+       
+    }
+    
+    
 }

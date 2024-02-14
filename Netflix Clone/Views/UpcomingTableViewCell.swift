@@ -38,7 +38,7 @@ class UpcomingTableViewCell : UITableViewCell  {
         return titlePoster
     }()
     
-    func confgure(with viewModel : TitleViewModel) {
+    func configure(with viewModel : TitleViewModel) {
         guard let url = URL(string: TitleCollectionViewCell.baseUrl + viewModel.posterUrl) else {
             return
         }
